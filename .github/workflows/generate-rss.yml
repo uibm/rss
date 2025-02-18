@@ -26,6 +26,18 @@ jobs:
       with:
         python-version: '3.11'
 
+    - name: Install dependencies (if any)
+      if: ${{ steps.check_dependencies.outcome == 'success' }}
+      run: |
+        python -m pip install -r requirements.txt
+
+    - name: Check for requirements.txt
+      id: check_dependencies
+      uses: actions/checkout@v4
+      with:
+        path: .
+        fetch-depth: 0
+        ref: ${{ github.ref }}
     - name: Generate RSS Feed
       run: |
         python scripts/generate_rss.py
@@ -42,9 +54,10 @@ jobs:
       id: deployment
       uses: actions/deploy-pages@v4
 
-    - name: Commit changes
+    - name: Commit and push changes
       run: |
         git config --local user.email "ujjwal.kumar1@ibm.com"
         git config --local user.name "uibm"
-        git add index.html
-        git diff --quiet || (git commit -m "Update RSS feed [$(date -u +'%Y-%m-%d %H:%M:%S UTC')]" && git push)
+        git add index.html  # Add the updated index.html
+        git commit -m "Update RSS feed [$(date -u +'%Y-%m-%d %H:%M:%S UTC')]"
+        git push origin main # Explicitly push to the 'main' branch
